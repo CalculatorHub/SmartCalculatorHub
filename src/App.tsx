@@ -5,6 +5,7 @@ import VehiclePage from './components/VehicleHub/VehiclePage';
 import EstatePage from './components/EstateHub/EstatePage';
 import BottomNav from './components/BottomNav';
 import HomePage from './components/HomePage';
+import DownloadAppButton from './components/DownloadAppSection';
 import AdminPanel from './components/AdminPanel';
 import FeedbackSystem from './components/FeedbackSystem';
 import { 
@@ -104,6 +105,8 @@ export default function App() {
             <MessageSquare className="w-4 h-4" />
             <span>Feedback</span>
           </button>
+
+          <DownloadAppButton />
 
           <button 
             onClick={() => setIsDarkMode(!isDarkMode)}

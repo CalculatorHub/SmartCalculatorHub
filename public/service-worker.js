@@ -2,10 +2,7 @@ const CACHE_NAME = 'calhub-cache-v1';
 const urlsToCache = [
   './',
   './index.html',
-  './assets/index.js',
-  './assets/index.css',
-  './icon-192.png',
-  './icon-512.png'
+  './manifest.json'
 ];
 
 self.addEventListener('install', event => {

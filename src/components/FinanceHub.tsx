@@ -4,9 +4,11 @@ import {
 } from 'recharts';
 import { 
   Percent, IndianRupee, TrendingUp, Calculator, Tag, ArrowRightLeft, 
-  ChevronRight, Info, AlertCircle, Zap, Target, ShieldCheck
+  ChevronRight, Info, AlertCircle, Zap, Target, ShieldCheck,
+  Download, FileText, Share2, History, PlusCircle, Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { exportToCSV, exportToPDF } from '../lib/exportUtils';
 
 // --- Components ---
 
@@ -17,6 +19,7 @@ const RateConverter = () => {
   const [mode, setMode] = useState<'pctToRs' | 'rsToPct'>('pctToRs');
   const [inputVal, setInputVal] = useState('12');
   const [result, setResult] = useState<{ value: string; unit: string } | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
 
   useEffect(() => {
     const val = parseFloat(inputVal);
@@ -25,7 +28,6 @@ const RateConverter = () => {
       return;
     }
     if (mode === 'pctToRs') {
-      // 12% = ₹1 => ₹ = (pct / 12)
       const rs = val / 12;
       if (rs < 1) {
         setResult({ value: (rs * 100).toFixed(0), unit: 'Paise' });
@@ -33,11 +35,34 @@ const RateConverter = () => {
         setResult({ value: rs.toFixed(2), unit: 'Rupees (₹)' });
       }
     } else {
-      // ₹1 = 12% => pct = (rs * 12)
       const pct = val * 12;
       setResult({ value: pct.toFixed(2), unit: 'Percent (%)' });
     }
   }, [inputVal, mode]);
+
+  const saveToHistory = () => {
+    if (!result || !inputVal) return;
+    const entry = {
+      id: Date.now(),
+      type: mode === 'pctToRs' ? 'Pct to Rs' : 'Rs to Pct',
+      input: `${inputVal}${mode === 'pctToRs' ? '%' : '₹'}`,
+      output: `${result.value} ${result.unit}`,
+      date: new Date().toLocaleTimeString()
+    };
+    setHistory(prev => [entry, ...prev].slice(0, 10));
+  };
+
+  const handleExportCSV = () => {
+    if (history.length === 0) return;
+    exportToCSV(history.map(({type, input, output, date}) => ({Type: type, Input: input, Output: output, Time: date})), 'Rate_Conversion_History');
+  };
+
+  const handleExportPDF = () => {
+    if (history.length === 0) return;
+    const headers = ['Type', 'Input', 'Output', 'Time'];
+    const body = history.map(item => [item.type, item.input, item.output, item.date]);
+    exportToPDF('Rate Conversion History', headers, body, 'Rate_Conversion_History');
+  };
 
   return (
     <div className="bg-white dark:bg-white/5 rounded-2xl shadow-md p-5 space-y-4 border border-gray-200 dark:border-white/10 transition-all hover:shadow-lg">
@@ -84,19 +109,53 @@ const RateConverter = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl flex flex-col items-center justify-center gap-1"
+              className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl flex flex-col items-center justify-center gap-2"
             >
-              <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest italic">Converted Value</span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter">
-                   {mode === 'rsToPct' ? '' : (parseFloat(result.value) >= 1 && result.unit.includes('Rupees') ? '₹' : '')}
-                   {result.value}
-                </span>
-                <span className="text-xs font-bold text-gray-600 dark:text-gray-400">{result.unit}</span>
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest italic">Converted Value</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter">
+                    {mode === 'rsToPct' ? '' : (parseFloat(result.value) >= 1 && result.unit.includes('Rupees') ? '₹' : '')}
+                    {result.value}
+                  </span>
+                  <span className="text-xs font-bold text-gray-600 dark:text-gray-400">{result.unit}</span>
+                </div>
               </div>
+              <button 
+                onClick={saveToHistory}
+                className="flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-blue-900/40 text-[9px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-300 rounded-lg border border-blue-200 dark:border-blue-700/50 hover:bg-blue-100 transition-colors"
+              >
+                <PlusCircle className="w-3 h-3" />
+                Save to Log
+              </button>
             </motion.div>
           )}
         </AnimatePresence>
+
+        {history.length > 0 && (
+          <div className="space-y-2 pt-2 border-t border-gray-100 dark:border-white/5">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">
+                <History className="w-3 h-3" /> Recent History
+              </span>
+              <div className="flex gap-2">
+                <button onClick={handleExportCSV} className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase hover:underline">CSV</button>
+                <button onClick={handleExportPDF} className="text-[9px] font-black text-red-600 dark:text-red-400 uppercase hover:underline">PDF</button>
+              </div>
+            </div>
+            <div className="space-y-1.5 max-h-[120px] overflow-y-auto pr-1">
+              {history.map((item) => (
+                <div key={item.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-white/5 rounded-lg border border-gray-100 dark:border-white/5">
+                  <div className="flex flex-col">
+                    <span className="text-[8px] font-bold text-gray-400 uppercase">{item.input}</span>
+                    <span className="text-[10px] font-black text-gray-800 dark:text-gray-200">{item.output}</span>
+                  </div>
+                  <span className="text-[8px] font-medium text-gray-400">{item.date}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex items-start gap-2 px-1">
           <Info className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
@@ -117,6 +176,7 @@ const InterestCalculator = () => {
   const [rate, setRate] = useState(10);
   const [time, setTime] = useState(5);
   const [type, setType] = useState<'SI' | 'CI'>('CI');
+  const [history, setHistory] = useState<any[]>([]);
 
   const stats = useMemo(() => {
     const P = principal || 0;
@@ -155,6 +215,40 @@ const InterestCalculator = () => {
       chartData
     };
   }, [principal, rate, time, type]);
+
+  const saveToHistory = () => {
+    const entry = {
+      id: Date.now(),
+      type: type === 'SI' ? 'Simple' : 'Compound',
+      principal: principal,
+      rate: rate,
+      years: time,
+      interest: stats.totalInterest,
+      total: stats.totalAmount,
+      date: new Date().toLocaleTimeString()
+    };
+    setHistory(prev => [entry, ...prev].slice(0, 10));
+  };
+
+  const handleExportCSV = () => {
+    if (history.length === 0) return;
+    exportToCSV(history.map(({type, principal, rate, years, interest, total, date}) => ({
+      Type: type, 
+      Principal: principal, 
+      Rate: rate, 
+      Years: years, 
+      Interest: interest, 
+      Total: total, 
+      Time: date
+    })), 'Interest_Calculation_History');
+  };
+
+  const handleExportPDF = () => {
+    if (history.length === 0) return;
+    const headers = ['Type', 'Principal', 'Rate', 'Years', 'Interest', 'Total'];
+    const body = history.map(item => [item.type, `₹${item.principal}`, `${item.rate}%`, item.years, `₹${item.interest}`, `₹${item.total}`]);
+    exportToPDF('Interest Calculation History', headers, body, 'Interest_Calculation_History');
+  };
 
   return (
     <div className="bg-white dark:bg-white/5 rounded-2xl shadow-md p-5 space-y-6 border border-gray-200 dark:border-white/10 transition-all hover:shadow-lg">
@@ -214,16 +308,60 @@ const InterestCalculator = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-xl">
-          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest block mb-1">Interest</span>
-          <span className="text-base font-extrabold text-gray-900 dark:text-white">₹{stats.totalInterest.toLocaleString()}</span>
+      <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-xl">
+            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest block mb-1">Interest</span>
+            <span className="text-base font-extrabold text-gray-900 dark:text-white">₹{stats.totalInterest.toLocaleString()}</span>
+          </div>
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl">
+            <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest block mb-1">Maturity</span>
+            <span className="text-base font-extrabold text-gray-900 dark:text-white">₹{stats.totalAmount.toLocaleString()}</span>
+          </div>
         </div>
-        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl">
-          <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest block mb-1">Maturity</span>
-          <span className="text-base font-extrabold text-gray-900 dark:text-white">₹{stats.totalAmount.toLocaleString()}</span>
-        </div>
+        <button 
+          onClick={saveToHistory}
+          className="w-full flex items-center justify-center gap-2 py-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 dark:text-gray-300 rounded-xl border border-gray-200 dark:border-white/10 transition-all"
+        >
+          <PlusCircle className="w-4 h-4" />
+          Save Calculation
+        </button>
       </div>
+
+      {history.length > 0 && (
+        <div className="space-y-3 pt-4 border-t border-gray-100 dark:border-white/5">
+          <div className="flex items-center justify-between">
+            <h4 className="text-[10px] font-extrabold text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+              <History className="w-3.5 h-3.5" /> Recent Results
+            </h4>
+            <div className="flex gap-3">
+              <button onClick={handleExportCSV} className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-1 hover:underline">
+                <FileText className="w-3 h-3" /> CSV
+              </button>
+              <button onClick={handleExportPDF} className="text-[9px] font-black text-red-600 dark:text-red-400 uppercase tracking-widest flex items-center gap-1 hover:underline">
+                <Download className="w-3 h-3" /> PDF
+              </button>
+            </div>
+          </div>
+          <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
+            {history.map((item) => (
+              <div key={item.id} className="p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5 flex items-center justify-between group">
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[8px] font-black px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded uppercase">{item.type}</span>
+                    <span className="text-[9px] font-bold text-gray-400 italic">P: ₹{item.principal.toLocaleString()}</span>
+                  </div>
+                  <span className="text-sm font-black text-gray-900 dark:text-white">₹{item.total.toLocaleString()}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 block">+₹{item.interest.toLocaleString()}</span>
+                  <span className="text-[8px] font-medium text-gray-400 uppercase tracking-tighter">{item.date}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="space-y-3">
         <h4 className="text-[10px] font-extrabold text-gray-400 uppercase tracking-[0.2em]">Growth Projection</h4>

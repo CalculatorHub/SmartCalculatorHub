@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Download, Wifi, WifiOff, ExternalLink } from 'lucide-react';
+import { Download, Wifi, WifiOff } from 'lucide-react';
 
 export default function DownloadAppButton() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -40,11 +40,10 @@ export default function DownloadAppButton() {
         setDeferredPrompt(null);
         setIsInstallable(false);
       }
-    } else {
-      // Fallback: Open the external hub link
-      window.open('https://smart-calculator-hub.vercel.app/', '_blank', 'noopener,noreferrer');
     }
   };
+
+  if (!isInstallable && !deferredPrompt) return null;
 
   return (
     <div className="flex items-center gap-3">
@@ -60,19 +59,11 @@ export default function DownloadAppButton() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={handleAction}
-        className={`flex items-center gap-2 px-4 py-2 backdrop-blur-xl border border-white/10 rounded-full transition-all duration-300 group ${
-          isInstallable 
-            ? 'bg-gradient-to-r from-blue-600/20 to-indigo-600/20 hover:from-blue-600/40 hover:to-indigo-600/40' 
-            : 'bg-white/5 hover:bg-white/10'
-        }`}
+        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 hover:from-blue-600/40 hover:to-indigo-600/40 backdrop-blur-xl border border-white/10 rounded-full transition-all duration-300 group"
       >
-        {isInstallable ? (
-          <Download className="w-3.5 h-3.5 text-blue-400 group-hover:animate-bounce" />
-        ) : (
-          <ExternalLink className="w-3.5 h-3.5 text-gray-400" />
-        )}
+        <Download className="w-3.5 h-3.5 text-blue-400 group-hover:animate-bounce" />
         <span className="text-[10px] font-black text-white uppercase tracking-widest hidden xs:inline">
-          {isInstallable ? 'Install App' : 'Get Hub'}
+          Install App
         </span>
       </motion.button>
     </div>

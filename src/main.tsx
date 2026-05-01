@@ -6,7 +6,8 @@ import './index.css';
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/service-worker.js");
+    // Using relative path to work with GH Pages subdirectories
+    navigator.serviceWorker.register("./service-worker.js");
   });
 }
 

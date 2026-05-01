@@ -89,7 +89,7 @@ export default function GoldCard() {
       </div>
 
       <div className="space-y-4">
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {PURITIES.map((p) => (
             <button
               key={p.label}

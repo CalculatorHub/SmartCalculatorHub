@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
   return {
     plugins: [react(), tailwindcss()],
-    base: './', // Using relative paths works well for GH Pages without a router
+    base: '/vamshi-smart-cal-hub/', // Set base to repository name for GH Pages
     build: {
       outDir: 'dist',
       assetsDir: 'assets',

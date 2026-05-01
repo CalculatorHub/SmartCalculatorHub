@@ -201,13 +201,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Sticky Download Button (Mobile Only) */}
-      <div className="fixed bottom-20 left-0 right-0 p-4 flex justify-center z-40 sm:hidden pointer-events-none">
-        <div className="pointer-events-auto">
-          <DownloadAppButton />
-        </div>
-      </div>
-
       {/* Feedback Modal Overlay */}
       <AnimatePresence>
         {showFeedbackModal && (

@@ -8,7 +8,6 @@ import HomePage from './components/HomePage';
 import DownloadAppButton from './components/DownloadAppSection';
 import AdminPanel from './components/AdminPanel';
 import FeedbackSystem from './components/FeedbackSystem';
-import InstallButton from './components/InstallButton';
 import { 
   Menu, User, Sun, Moon, Bell, Search, Settings, Shield, MessageSquare, X, WifiOff
 } from 'lucide-react';
@@ -183,9 +182,6 @@ export default function App() {
       {/* Global Navigation */}
       <BottomNav activeTab={activeTab === 'admin' ? null : activeTab} onTabChange={(tab) => { setActiveTab(tab); setShowUserMenu(false); }} />
 
-      {/* PWA Install Button */}
-      <InstallButton />
-
       {/* Offline Notification */}
       <AnimatePresence>
         {!isOnline && (
@@ -200,6 +196,13 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Sticky Download Button (Mobile Only) */}
+      <div className="fixed bottom-20 left-0 right-0 p-4 flex justify-center z-40 sm:hidden pointer-events-none">
+        <div className="pointer-events-auto">
+          <DownloadAppButton />
+        </div>
+      </div>
 
       {/* Feedback Modal Overlay */}
       <AnimatePresence>

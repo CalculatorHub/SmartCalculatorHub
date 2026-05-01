@@ -62,12 +62,11 @@ export default function SilverCard() {
     });
   };
 
-  // Automatically recalculate when any input or purity changes, if they are valid
   useEffect(() => {
-    if (weight && rate && making) {
+    if (results.isValid) {
       handleCalculate();
     }
-  }, [weight, rate, making, purity]);
+  }, [purity]);
 
   const isFieldInvalid = (val: string, field: keyof typeof hasInteracted) => {
     return hasInteracted[field] && !val;

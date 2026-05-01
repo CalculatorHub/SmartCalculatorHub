@@ -49,7 +49,6 @@ export default function GoldCard() {
     }
 
     setError('');
-    // Base Gold Rate (24K) * Purity Multiplier (e.g. 0.916 for 22K)
     const adjustedRate = R * purity.value;
     const goldValue = W * adjustedRate;
     const makingCharges = (goldValue * M) / 100;
@@ -64,12 +63,12 @@ export default function GoldCard() {
     });
   };
 
-  // Automatically recalculate when any input or purity changes, if they are valid
+  // Re-calculate if already valid when purity changes
   useEffect(() => {
-    if (weight && rate && making) {
+    if (results.isValid) {
       handleCalculate();
     }
-  }, [weight, rate, making, purity]);
+  }, [purity]);
 
   const isFieldInvalid = (val: string, field: keyof typeof hasInteracted) => {
     return hasInteracted[field] && !val;
@@ -89,7 +88,7 @@ export default function GoldCard() {
       </div>
 
       <div className="space-y-4">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {PURITIES.map((p) => (
             <button
               key={p.label}

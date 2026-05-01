@@ -1,8 +1,7 @@
 {
   "name": "react-example",
   "private": true,
-  "version": "1.0.0",
-  "homepage": "https://calculatorhub.github.io/vamshi-smart-cal-hub/",
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",

@@ -456,8 +456,8 @@ const InterestCalculator = () => {
                 }}
               />
               <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
-                {isCalculated && stats && stats.chartData.map((_entry, index) => (
-                  <Cell key={`cell-${index}`} fill={index === stats.chartData.length - 1 ? '#2563eb' : '#3b82f6'} fillOpacity={0.8} />
+                {isCalculated && stats?.chartData?.map((_entry: any, index: number) => (
+                  <Cell key={`cell-${index}`} fill={index === (stats?.chartData?.length ?? 0) - 1 ? '#2563eb' : '#3b82f6'} fillOpacity={0.8} />
                 ))}
               </Bar>
             </BarChart>
@@ -590,7 +590,31 @@ export default function FinanceHub() {
           <DiscountCalculator />
         </section>
 
-
+        <section className="space-y-4 pt-6 border-t border-gray-100 dark:border-gray-800">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider">Financial Insights</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4" id="financial-insights">
+            {[
+              { title: 'Rate Analysis', desc: 'Analyze rate changes and trends.', icon: <Zap className="w-5 h-5 text-blue-500" /> },
+              { title: 'Growth Engine', desc: 'Visualize growth over time.', icon: <Target className="w-5 h-5 text-emerald-500" /> },
+              { title: 'Savings Tool', desc: 'Calculate and track savings.', icon: <ShieldCheck className="w-5 h-5 text-indigo-500" /> },
+            ].map((item, idx) => (
+              <div 
+                key={idx}
+                className="bg-white dark:bg-white/5 p-5 rounded-2xl shadow-md border border-gray-200 dark:border-white/10 space-y-3 transition-all hover:shadow-lg group"
+              >
+                <div className="w-10 h-10 bg-gray-50 dark:bg-gray-900/50 rounded-xl flex items-center justify-center transition-colors group-hover:bg-blue-50 dark:group-hover:bg-blue-900/30">
+                  {item.icon}
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-tight">{item.title}</h4>
+                  <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
 
       <div className="bg-blue-600/10 dark:bg-blue-600/5 p-4 rounded-2xl border border-blue-600/10 flex items-start gap-3">

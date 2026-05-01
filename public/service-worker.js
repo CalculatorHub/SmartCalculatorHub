@@ -1,57 +1,43 @@
-const CACHE_NAME = 'calhub-v2';
+const CACHE_NAME = 'calhub-cache-v1';
 const urlsToCache = [
-  '/SmartCalculatorHub/',
-  '/SmartCalculatorHub/index.html',
-  '/SmartCalculatorHub/manifest.json',
+  './',
+  './index.html',
+  './manifest.json',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap'
 ];
 
-// Install
-self.addEventListener('install', (event) => {
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('SW: Opened cache');
-      return cache.addAll(urlsToCache);
-    })
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        return cache.addAll(urlsToCache);
+      })
   );
-  self.skipWaiting();
 });
 
-// Activate
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.map((key) => {
-        if (key !== CACHE_NAME) {
-          console.log('SW: Deleting old cache', key);
-          return caches.delete(key);
-        }
-      }))
-    )
-  );
-  self.clients.claim();
-});
-
-// Fetch (Offline Support with Cache-First then Network fallback)
-self.addEventListener('fetch', (event) => {
-  // Ignore non-get requests and potential chrome-extension urls
-  if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) return;
-
+self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) return cachedResponse;
+    caches.match(event.request)
+      .then(response => {
+        // Return cached version OR fetch from network
+        return response || fetch(event.request).catch(() => {
+          // Silent failure if offline and not in cache
+        });
+      })
+  );
+});
 
-      return fetch(event.request).then((networkResponse) => {
-        // Cache success responses
-        if (networkResponse && networkResponse.status === 200) {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        return networkResponse;
-      }).catch(() => {
-        // Silent fail or return offline fallback if needed
-      });
+self.addEventListener('activate', event => {
+  const cacheWhitelist = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
     })
   );
 });

@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Download, Smartphone, X, Info, HelpCircle } from 'lucide-react';
+import { Download, Smartphone, X, Info, HelpCircle, FileDown } from 'lucide-react';
 
 export default function DownloadAppButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [showHowTo, setShowHowTo] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
 
   useEffect(() => {
     // Check if device is iOS
-    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const ua = navigator.userAgent;
+    const isIOSDevice = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
     setIsIOS(isIOSDevice);
+
+    const isAndroidDevice = /Android/.test(ua);
+    setIsAndroid(isAndroidDevice);
 
     const handleBeforeInstallPrompt = (e: any) => {
       // Prevent the mini-infobar from appearing on mobile
@@ -48,19 +53,45 @@ export default function DownloadAppButton() {
     }
   };
 
+  const handleAPKDownload = () => {
+    // This expects calhub.apk to be in the /public folder
+    const link = document.createElement('a');
+    link.href = '/calhub.apk';
+    link.download = 'calhub.apk';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <>
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={handleAction}
-        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 rounded-xl transition-all duration-300 group border border-blue-500/30"
-      >
-        <Smartphone className="w-4 h-4 text-blue-100 group-hover:scale-110 transition-transform" />
-        <span className="text-[10px] font-black uppercase tracking-widest">
-          {isInstallable ? 'Install App' : 'Get App'}
-        </span>
-      </motion.button>
+      <div className="flex flex-wrap gap-3">
+        {isAndroid && (
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleAPKDownload}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20 rounded-xl transition-all duration-300 group border border-emerald-500/30"
+          >
+            <FileDown className="w-4 h-4 text-emerald-100 group-hover:scale-110 transition-transform" />
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              Download APK
+            </span>
+          </motion.button>
+        )}
+
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleAction}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 rounded-xl transition-all duration-300 group border border-blue-500/30"
+        >
+          <Smartphone className="w-4 h-4 text-blue-100 group-hover:scale-110 transition-transform" />
+          <span className="text-[10px] font-black uppercase tracking-widest">
+            {isInstallable ? 'Install App' : 'Get App'}
+          </span>
+        </motion.button>
+      </div>
 
       {/* How to install modal */}
       <AnimatePresence>
@@ -91,16 +122,34 @@ export default function DownloadAppButton() {
                   <div className="w-16 h-16 bg-blue-600/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <Download className="w-8 h-8 text-blue-600" />
                   </div>
-                  <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight italic">Install CALHUB</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Add to your home screen for a full-screen, lightning-fast experience.</p>
+                  <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight italic">Get CALHUB</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Add to your home screen or download the native Android app.</p>
                 </div>
 
                 <div className="space-y-4">
+                  {/* APK Download Link for Everyone */}
+                  <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800/50">
+                    <h4 className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                      <FileDown className="w-3 h-3" />
+                      Direct APK (Android)
+                    </h4>
+                    <p className="text-[11px] text-gray-600 dark:text-gray-300 font-bold mb-3">
+                      Download the standalone app file directly to your phone.
+                    </p>
+                    <button 
+                      onClick={handleAPKDownload}
+                      className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black rounded-xl uppercase tracking-widest transition-all"
+                    >
+                      Download calhub.apk
+                    </button>
+                    <p className="text-[9px] text-gray-400 mt-2 italic text-center">Note: Enable "Install from unknown sources" in settings.</p>
+                  </div>
+
                   {isIOS ? (
                     <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/50">
                       <h4 className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                         <Smartphone className="w-3 h-3" />
-                        iOS Instructions
+                        iOS Instructions (PWA)
                       </h4>
                       <ol className="text-[11px] text-gray-600 dark:text-gray-300 space-y-2 list-decimal list-inside font-bold">
                         <li>Open Safari browser</li>
@@ -113,7 +162,7 @@ export default function DownloadAppButton() {
                     <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/50">
                       <h4 className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                          <HelpCircle className="w-3 h-3" />
-                         General Instructions
+                         General Web App Install
                       </h4>
                       <ol className="text-[11px] text-gray-600 dark:text-gray-300 space-y-2 list-decimal list-inside font-bold">
                         <li>Tap the three dots (menu) in your browser</li>
@@ -143,3 +192,4 @@ export default function DownloadAppButton() {
     </>
   );
 }
+

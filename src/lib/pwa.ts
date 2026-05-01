@@ -12,12 +12,14 @@ export function usePWAInstall() {
     }
 
     const handleBeforeInstallPrompt = (e: any) => {
+      console.log('PWA: beforeinstallprompt event fired');
       e.preventDefault();
       setDeferredPrompt(e);
       setIsInstallable(true);
     };
 
     const handleAppInstalled = () => {
+      console.log('PWA: App installed successfully');
       setIsInstalled(true);
       setIsInstallable(false);
       setDeferredPrompt(null);

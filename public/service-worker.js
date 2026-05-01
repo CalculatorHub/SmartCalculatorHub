@@ -1,8 +1,8 @@
 const CACHE_NAME = 'calhub-v2';
 const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json',
+  '/SmartCalculatorHub/',
+  '/SmartCalculatorHub/index.html',
+  '/SmartCalculatorHub/manifest.json',
 ];
 
 // Install

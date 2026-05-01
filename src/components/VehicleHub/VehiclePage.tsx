@@ -5,9 +5,9 @@ import EstimationCard from './EstimationCard';
 import { Car } from 'lucide-react';
 
 export default function VehiclePage() {
-  const [distance, setDistance] = useState('100');
-  const [mileage, setMileage] = useState('15');
-  const [fuelPrice, setFuelPrice] = useState('96.72');
+  const [distance, setDistance] = useState('');
+  const [mileage, setMileage] = useState('');
+  const [fuelPrice, setFuelPrice] = useState('');
 
   return (
     <div className="space-y-6 pb-28 pt-4 animate-in fade-in slide-in-from-bottom-2 duration-500" id="vehicle-hub">

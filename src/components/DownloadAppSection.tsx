@@ -63,7 +63,7 @@ export default function DownloadAppButton() {
       >
         <Download className="w-3.5 h-3.5 text-blue-400 group-hover:animate-bounce" />
         <span className="text-[10px] font-black text-white uppercase tracking-widest hidden xs:inline">
-          Install App
+          Download App
         </span>
       </motion.button>
     </div>

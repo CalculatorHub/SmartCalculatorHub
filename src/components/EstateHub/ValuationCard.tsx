@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { IndianRupee, RefreshCw, Archive } from 'lucide-react';
 
 interface ValuationCardProps {
@@ -10,6 +10,8 @@ interface ValuationCardProps {
 }
 
 export default function ValuationCard({ rate, setRate, rateUnit, setRateUnit, onReset }: ValuationCardProps) {
+  const [hasInteracted, setHasInteracted] = useState(false);
+
   return (
     <div className="bg-white dark:bg-white/5 p-5 rounded-2xl shadow-md border border-gray-200 dark:border-white/10 space-y-6" id="estate-valuation-card">
       <div className="flex items-center gap-3">
@@ -28,9 +30,17 @@ export default function ValuationCard({ rate, setRate, rateUnit, setRateUnit, on
                     <input
                         type="number"
                         value={rate}
-                        onChange={(e) => setRate(e.target.value)}
+                        placeholder="Enter rate per unit"
+                        onBlur={() => setHasInteracted(true)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (parseFloat(val) < 0) return;
+                          setRate(val);
+                        }}
                         autoComplete="off"
-                        className="w-full h-11 bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white rounded-xl pl-8 pr-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none border border-transparent dark:border-white/10"
+                        className={`w-full h-11 bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white rounded-xl pl-8 pr-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none border transition-all ${
+                          hasInteracted && !rate ? 'border-red-500/50 bg-red-50/50 dark:bg-red-500/5' : 'border-transparent dark:border-white/10'
+                        }`}
                     />
                 </div>
             </div>
@@ -47,9 +57,18 @@ export default function ValuationCard({ rate, setRate, rateUnit, setRateUnit, on
             </div>
         </div>
 
+        {hasInteracted && !rate && (
+          <div className="text-[10px] font-bold text-red-500 bg-red-500/10 p-2 rounded-lg text-center">
+            Please enter all required values
+          </div>
+        )}
+
         <div className="flex gap-3">
              <button 
-                onClick={onReset}
+                onClick={() => {
+                  onReset();
+                  setHasInteracted(false);
+                }}
                 className="flex-1 h-11 bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400 text-[10px] font-black rounded-xl uppercase flex items-center justify-center gap-2 transition-colors hover:bg-gray-200 dark:hover:bg-white/20"
              >
                 <RefreshCw className="w-3.5 h-3.5" />

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Route, Gauge } from 'lucide-react';
 
 interface DistanceEconomyCardProps {
@@ -9,6 +9,8 @@ interface DistanceEconomyCardProps {
 }
 
 export default function DistanceEconomyCard({ distance, setDistance, mileage, setMileage }: DistanceEconomyCardProps) {
+  const [hasInteracted, setHasInteracted] = useState({ distance: false, mileage: false });
+
   return (
     <div className="bg-white dark:bg-white/5 p-5 rounded-2xl shadow-md border border-gray-200 dark:border-white/10 space-y-4" id="distance-economy-card">
       <div className="flex items-center gap-3">
@@ -26,9 +28,17 @@ export default function DistanceEconomyCard({ distance, setDistance, mileage, se
              <input
                 type="number"
                 value={distance}
-                onChange={(e) => setDistance(e.target.value)}
+                placeholder="Enter distance"
+                onBlur={() => setHasInteracted(prev => ({ ...prev, distance: true }))}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (parseFloat(val) < 0) return;
+                  setDistance(val);
+                }}
                 autoComplete="off"
-                className="w-full h-12 bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white rounded-xl pl-12 pr-4 text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none border border-transparent dark:border-white/10 transition-all"
+                className={`w-full h-12 bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white rounded-xl pl-12 pr-4 text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none border transition-all ${
+                  hasInteracted.distance && !distance ? 'border-red-500/50 bg-red-50/50 dark:bg-red-500/5' : 'border-transparent dark:border-white/10'
+                }`}
              />
           </div>
         </div>
@@ -40,9 +50,17 @@ export default function DistanceEconomyCard({ distance, setDistance, mileage, se
              <input
                 type="number"
                 value={mileage}
-                onChange={(e) => setMileage(e.target.value)}
+                placeholder="Enter mileage"
+                onBlur={() => setHasInteracted(prev => ({ ...prev, mileage: true }))}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (parseFloat(val) < 0) return;
+                  setMileage(val);
+                }}
                 autoComplete="off"
-                className="w-full h-12 bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white rounded-xl pl-12 pr-4 text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none border border-transparent dark:border-white/10 transition-all"
+                className={`w-full h-12 bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white rounded-xl pl-12 pr-4 text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none border transition-all ${
+                  hasInteracted.mileage && !mileage ? 'border-red-500/50 bg-red-50/50 dark:bg-red-500/5' : 'border-transparent dark:border-white/10'
+                }`}
              />
           </div>
         </div>

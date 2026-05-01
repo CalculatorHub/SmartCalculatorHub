@@ -17,11 +17,16 @@ import { exportToCSV, exportToPDF } from '../lib/exportUtils';
  */
 const RateConverter = () => {
   const [mode, setMode] = useState<'pctToRs' | 'rsToPct'>('pctToRs');
-  const [inputVal, setInputVal] = useState('12');
+  const [inputVal, setInputVal] = useState('');
   const [result, setResult] = useState<{ value: string; unit: string } | null>(null);
   const [history, setHistory] = useState<any[]>([]);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   useEffect(() => {
+    if (!inputVal) {
+      setResult(null);
+      return;
+    }
     const val = parseFloat(inputVal);
     if (isNaN(val)) {
       setResult(null);
@@ -94,12 +99,22 @@ const RateConverter = () => {
             <input
               type="number"
               value={inputVal}
-              onChange={(e) => setInputVal(e.target.value)}
-              placeholder="0.00"
+              onChange={(e) => {
+                const val = e.target.value;
+                if (parseFloat(val) < 0) return;
+                setInputVal(val);
+              }}
+              onBlur={() => setHasInteracted(true)}
+              placeholder={mode === 'pctToRs' ? "Enter percentage" : "Enter rupee value"}
               autoComplete="off"
-              className="w-full h-12 bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white rounded-xl pl-12 pr-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none border border-transparent dark:border-white/5 transition-all placeholder-gray-500 dark:placeholder-gray-400"
+              className={`w-full h-12 bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white rounded-xl pl-12 pr-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none border transition-all placeholder-gray-500 dark:placeholder-gray-400 ${
+                hasInteracted && !inputVal ? 'border-red-500/50 bg-red-50/50 dark:bg-red-500/5' : 'border-transparent dark:border-white/5'
+              }`}
             />
           </div>
+          {hasInteracted && !inputVal && (
+            <p className="text-[10px] font-bold text-red-500">Please enter all required values</p>
+          )}
         </div>
 
         <AnimatePresence mode="wait">
@@ -172,16 +187,20 @@ const RateConverter = () => {
  * INTEREST CALCULATOR & BAR CHART
  */
 const InterestCalculator = () => {
-  const [principal, setPrincipal] = useState(10000);
-  const [rate, setRate] = useState(10);
-  const [time, setTime] = useState(5);
+  const [principal, setPrincipal] = useState('');
+  const [rate, setRate] = useState('');
+  const [time, setTime] = useState('');
   const [type, setType] = useState<'SI' | 'CI'>('CI');
   const [history, setHistory] = useState<any[]>([]);
+  const [error, setError] = useState('');
+  const [hasInteracted, setHasInteracted] = useState({ principal: false, rate: false, time: false });
+  const [isCalculated, setIsCalculated] = useState(false);
 
   const stats = useMemo(() => {
-    const P = principal || 0;
-    const R = rate || 0;
-    const T = time || 0;
+    if (!principal || !rate || !time) return null;
+    const P = parseFloat(principal);
+    const R = parseFloat(rate);
+    const T = parseFloat(time);
     
     let totalInterest = 0;
     let totalAmount = 0;
@@ -216,13 +235,25 @@ const InterestCalculator = () => {
     };
   }, [principal, rate, time, type]);
 
+  const handleCalculate = () => {
+    setHasInteracted({ principal: true, rate: true, time: true });
+    if (!principal || !rate || !time) {
+      setError('Please enter all required values');
+      setIsCalculated(false);
+      return;
+    }
+    setError('');
+    setIsCalculated(true);
+  };
+
   const saveToHistory = () => {
+    if (!stats) return;
     const entry = {
       id: Date.now(),
       type: type === 'SI' ? 'Simple' : 'Compound',
-      principal: principal,
-      rate: rate,
-      years: time,
+      principal: parseFloat(principal),
+      rate: parseFloat(rate),
+      years: parseFloat(time),
       interest: stats.totalInterest,
       total: stats.totalAmount,
       date: new Date().toLocaleTimeString()
@@ -279,9 +310,18 @@ const InterestCalculator = () => {
           <input
             type="number"
             value={principal}
-            onChange={(e) => setPrincipal(Number(e.target.value))}
+            placeholder="Enter principal amount"
+            onChange={(e) => {
+              const val = e.target.value;
+              if (parseFloat(val) < 0) return;
+              setPrincipal(val);
+              setIsCalculated(false);
+            }}
+            onBlur={() => setHasInteracted(prev => ({ ...prev, principal: true }))}
             autoComplete="off"
-            className="w-full h-11 bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white rounded-xl px-4 text-sm font-bold outline-none border border-transparent dark:border-white/10 focus:ring-2 focus:ring-blue-500 transition-all"
+            className={`w-full h-11 bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white rounded-xl px-4 text-sm font-bold outline-none border transition-all focus:ring-2 focus:ring-blue-500 ${
+              hasInteracted.principal && !principal ? 'border-red-500/50 bg-red-50/50 dark:bg-red-500/5' : 'border-transparent dark:border-white/10'
+            }`}
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -290,9 +330,18 @@ const InterestCalculator = () => {
             <input
               type="number"
               value={rate}
-              onChange={(e) => setRate(Number(e.target.value))}
+              placeholder="Interest rate"
+              onChange={(e) => {
+                const val = e.target.value;
+                if (parseFloat(val) < 0) return;
+                setRate(val);
+                setIsCalculated(false);
+              }}
+              onBlur={() => setHasInteracted(prev => ({ ...prev, rate: true }))}
               autoComplete="off"
-              className="w-full h-11 bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white rounded-xl px-4 text-sm font-bold outline-none border border-transparent dark:border-white/10 focus:ring-2 focus:ring-blue-500 transition-all"
+              className={`w-full h-11 bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white rounded-xl px-4 text-sm font-bold outline-none border transition-all focus:ring-2 focus:ring-blue-500 ${
+                hasInteracted.rate && !rate ? 'border-red-500/50 bg-red-50/50 dark:bg-red-500/5' : 'border-transparent dark:border-white/10'
+              }`}
             />
           </div>
           <div className="space-y-1.5">
@@ -300,32 +349,56 @@ const InterestCalculator = () => {
             <input
               type="number"
               value={time}
-              onChange={(e) => setTime(Number(e.target.value))}
+              placeholder="Investment period"
+              onChange={(e) => {
+                const val = e.target.value;
+                if (parseFloat(val) < 0) return;
+                setTime(val);
+                setIsCalculated(false);
+              }}
+              onBlur={() => setHasInteracted(prev => ({ ...prev, time: true }))}
               autoComplete="off"
-              className="w-full h-11 bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white rounded-xl px-4 text-sm font-bold outline-none border border-transparent dark:border-white/10 focus:ring-2 focus:ring-blue-500 transition-all"
+              className={`w-full h-11 bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white rounded-xl px-4 text-sm font-bold outline-none border transition-all focus:ring-2 focus:ring-blue-500 ${
+                hasInteracted.time && !time ? 'border-red-500/50 bg-red-50/50 dark:bg-red-500/5' : 'border-transparent dark:border-white/10'
+              }`}
             />
           </div>
         </div>
       </div>
 
       <div className="flex flex-col gap-3">
-        <div className="grid grid-cols-2 gap-3">
+        {error && (
+          <p className="text-[10px] font-bold text-red-500 bg-red-500/10 p-2 rounded-lg text-center">{error}</p>
+        )}
+        <button 
+          onClick={handleCalculate}
+          className={`w-full h-11 text-white text-sm font-black rounded-xl transition-all shadow-md flex items-center justify-center gap-2 ${
+            !principal || !rate || !time ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'
+          }`}
+        >
+           <Calculator className="w-4 h-4" />
+           CALCULATE GROWTH
+        </button>
+
+        <div className={`grid grid-cols-2 gap-3 transition-opacity duration-300 ${isCalculated ? 'opacity-100' : 'opacity-40'}`}>
           <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-xl">
             <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest block mb-1">Interest</span>
-            <span className="text-base font-extrabold text-gray-900 dark:text-white">₹{stats.totalInterest.toLocaleString()}</span>
+            <span className="text-base font-extrabold text-gray-900 dark:text-white">₹{isCalculated && stats ? stats.totalInterest.toLocaleString() : '0'}</span>
           </div>
           <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl">
             <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest block mb-1">Maturity</span>
-            <span className="text-base font-extrabold text-gray-900 dark:text-white">₹{stats.totalAmount.toLocaleString()}</span>
+            <span className="text-base font-extrabold text-gray-900 dark:text-white">₹{isCalculated && stats ? stats.totalAmount.toLocaleString() : '0'}</span>
           </div>
         </div>
-        <button 
-          onClick={saveToHistory}
-          className="w-full flex items-center justify-center gap-2 py-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 dark:text-gray-300 rounded-xl border border-gray-200 dark:border-white/10 transition-all"
-        >
-          <PlusCircle className="w-4 h-4" />
-          Save Calculation
-        </button>
+        {isCalculated && (
+          <button 
+            onClick={saveToHistory}
+            className="w-full flex items-center justify-center gap-2 py-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 dark:text-gray-300 rounded-xl border border-gray-200 dark:border-white/10 transition-all"
+          >
+            <PlusCircle className="w-4 h-4" />
+            Save Calculation
+          </button>
+        )}
       </div>
 
       {history.length > 0 && (
@@ -367,7 +440,7 @@ const InterestCalculator = () => {
         <h4 className="text-[10px] font-extrabold text-gray-400 uppercase tracking-[0.2em]">Growth Projection</h4>
         <div className="h-[200px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={stats.chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+            <BarChart data={stats?.chartData || []} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.3} />
               <XAxis dataKey="year" fontSize={10} axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
               <YAxis fontSize={10} axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} tickFormatter={(v) => `₹${v/1000}k`} />
@@ -383,7 +456,7 @@ const InterestCalculator = () => {
                 }}
               />
               <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
-                {stats.chartData.map((_entry, index) => (
+                {isCalculated && stats && stats.chartData.map((_entry, index) => (
                   <Cell key={`cell-${index}`} fill={index === stats.chartData.length - 1 ? '#2563eb' : '#3b82f6'} fillOpacity={0.8} />
                 ))}
               </Bar>
@@ -399,11 +472,13 @@ const InterestCalculator = () => {
  * DISCOUNT CALCULATOR
  */
 const DiscountCalculator = () => {
-  const [price, setPrice] = useState(5000);
-  const [discountPct, setDiscountPct] = useState(25);
+  const [price, setPrice] = useState('');
+  const [discountPct, setDiscountPct] = useState('');
+  const [hasInteracted, setHasInteracted] = useState({ price: false, discount: false });
 
-  const discountAmount = (price * discountPct) / 100;
-  const finalPrice = price - discountAmount;
+  const discountAmount = (!price || !discountPct) ? 0 : (parseFloat(price) * parseFloat(discountPct)) / 100;
+  const finalPrice = (!price || !discountPct) ? 0 : parseFloat(price) - discountAmount;
+  const isValid = price && discountPct;
 
   return (
     <div className="bg-white dark:bg-white/5 rounded-2xl shadow-md p-5 space-y-4 border border-gray-200 dark:border-white/10 transition-all hover:shadow-lg">
@@ -418,9 +493,17 @@ const DiscountCalculator = () => {
           <input
             type="number"
             value={price}
-            onChange={(e) => setPrice(Number(e.target.value))}
+            placeholder="Item price"
+            onChange={(e) => {
+              const val = e.target.value;
+              if (parseFloat(val) < 0) return;
+              setPrice(val);
+            }}
+            onBlur={() => setHasInteracted(prev => ({ ...prev, price: true }))}
             autoComplete="off"
-            className="w-full h-11 bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white rounded-xl px-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none border border-transparent dark:border-white/10"
+            className={`w-full h-11 bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white rounded-xl px-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none border transition-all ${
+              hasInteracted.price && !price ? 'border-red-500/50 bg-red-50/50 dark:bg-red-500/5' : 'border-transparent dark:border-white/10'
+            }`}
           />
         </div>
         <div className="space-y-1.5">
@@ -428,21 +511,42 @@ const DiscountCalculator = () => {
           <input
             type="number"
             value={discountPct}
-            onChange={(e) => setDiscountPct(Number(e.target.value))}
+            placeholder="Discount %"
+            onChange={(e) => {
+              const val = e.target.value;
+              if (parseFloat(val) < 0) return;
+              setDiscountPct(val);
+            }}
+            onBlur={() => setHasInteracted(prev => ({ ...prev, discount: true }))}
             autoComplete="off"
-            className="w-full h-11 bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white rounded-xl px-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none border border-transparent dark:border-white/10"
+            className={`w-full h-11 bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white rounded-xl px-4 text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none border transition-all ${
+              hasInteracted.discount && !discountPct ? 'border-red-500/50 bg-red-50/50 dark:bg-red-500/5' : 'border-transparent dark:border-white/10'
+            }`}
           />
         </div>
       </div>
 
-      <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 flex flex-col gap-3">
+      <AnimatePresence>
+        {(!price || !discountPct) && (hasInteracted.price || hasInteracted.discount) && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="text-[10px] font-bold text-red-500 bg-red-500/10 p-2 rounded-lg text-center"
+          >
+            Please enter all required values
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className={`p-4 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 flex flex-col gap-3 transition-opacity ${isValid ? 'opacity-100' : 'opacity-40'}`}>
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-500 font-medium tracking-tight">You Save:</span>
-          <span className="font-bold text-emerald-600 dark:text-emerald-400">₹{discountAmount.toLocaleString()}</span>
+          <span className="font-bold text-emerald-600 dark:text-emerald-400">₹{isValid ? discountAmount.toLocaleString() : '0'}</span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-700 dark:text-gray-200 font-bold tracking-tight">Final Price:</span>
-          <span className="text-xl font-black text-blue-600 dark:text-blue-400">₹{finalPrice.toLocaleString()}</span>
+          <span className="text-xl font-black text-blue-600 dark:text-blue-400">₹{isValid ? finalPrice.toLocaleString() : '0'}</span>
         </div>
       </div>
     </div>
@@ -486,31 +590,7 @@ export default function FinanceHub() {
           <DiscountCalculator />
         </section>
 
-        <section className="space-y-4 pt-6 border-t border-gray-100 dark:border-gray-800">
-          <div className="flex items-center justify-between px-1">
-            <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider">Financial Insights</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4" id="financial-insights">
-            {[
-              { title: 'Rate Analysis', desc: 'Analyze rate changes and trends.', icon: <Zap className="w-5 h-5 text-blue-500" /> },
-              { title: 'Growth Engine', desc: 'Visualize growth over time.', icon: <Target className="w-5 h-5 text-emerald-500" /> },
-              { title: 'Savings Tool', desc: 'Calculate and track savings.', icon: <ShieldCheck className="w-5 h-5 text-indigo-500" /> },
-            ].map((item, idx) => (
-              <div 
-                key={idx}
-                className="bg-white dark:bg-white/5 p-5 rounded-2xl shadow-md border border-gray-200 dark:border-white/10 space-y-3 transition-all hover:shadow-lg group"
-              >
-                <div className="w-10 h-10 bg-gray-50 dark:bg-gray-900/50 rounded-xl flex items-center justify-center transition-colors group-hover:bg-blue-50 dark:group-hover:bg-blue-900/30">
-                  {item.icon}
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-tight">{item.title}</h4>
-                  <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+
       </div>
 
       <div className="bg-blue-600/10 dark:bg-blue-600/5 p-4 rounded-2xl border border-blue-600/10 flex items-start gap-3">

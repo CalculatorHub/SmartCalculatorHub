@@ -6,10 +6,10 @@ import ConversionCard from './ConversionCard';
 import { Landmark } from 'lucide-react';
 
 export default function EstatePage() {
-  const [length, setLength] = useState('50');
-  const [width, setWidth] = useState('30');
+  const [length, setLength] = useState('');
+  const [width, setWidth] = useState('');
   const [unit, setUnit] = useState<'FEET' | 'METERS'>('FEET');
-  const [rate, setRate] = useState('1500');
+  const [rate, setRate] = useState('');
   const [rateUnit, setRateUnit] = useState('SQ.FT');
 
   const stats = useMemo(() => {
